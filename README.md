@@ -9,7 +9,7 @@
 
 <h2>Windows:</h2>
 
--> This miner require Netframework 4.6.1 minimum and the Xenophyte Connector All library: https://github.com/Xenophyte/Xenophyte-Connector-All
+-> This miner require Netframework 4.6.1 minimum and the Xenophyte Connector All library: https://github.com/Xenophyte-coin/Xenophyte-Connector-All
 
 <h2>Linux:</h2>
 
@@ -43,7 +43,7 @@ Hashrate test [Updated 13/02/2019]:
 
 <h3>Help:</h3>
 
-For more informations about how work the Xenophyte Mining System, please check out the Wiki: https://github.com/Xenophyte/Xenophyte-Solo-Miner/wiki
+For more informations about how work the Xenophyte Mining System, please check out the Wiki: https://github.com/Xenophyte-coin/Xenophyte-Solo-Miner/wiki
 
 
 **Developers:**
