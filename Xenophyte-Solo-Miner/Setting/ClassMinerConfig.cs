@@ -1,4 +1,6 @@
-﻿namespace Xenophyte_Solo_Miner.Setting
+﻿using System.Net;
+
+namespace Xenophyte_Solo_Miner.Setting
 {
     public class ClassMinerConfig
     {
@@ -11,7 +13,7 @@
         public string mining_manual_thread_affinity = string.Empty;
         public bool mining_enable_proxy;
         public int mining_proxy_port;
-        public string mining_proxy_host = string.Empty;
+        public IPAddress mining_proxy_host = null;
         public int mining_percent_difficulty_start;
         public int mining_percent_difficulty_end;
         public bool mining_show_calculation_speed = false;

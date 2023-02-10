@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -15,7 +17,6 @@ using Xenophyte_Solo_Miner.Token;
 using Xenophyte_Solo_Miner.Utility;
 
 
-// ReSharper disable FunctionNeverReturns
 
 namespace Xenophyte_Solo_Miner
 {
@@ -166,7 +167,7 @@ namespace Xenophyte_Solo_Miner
                     ClassMining.InitializeMiningObjects();
                     ClassMiningStats.InitializeMiningStats();
                     ClassConsole.WriteLine("Connecting to the network..", ClassConsoleColorEnumeration.ConsoleTextColorYellow);
-                    Task.Factory.StartNew(ClassMiningNetwork.StartConnectMinerAsync).ConfigureAwait(false);
+                    Task.Factory.StartNew(ClassMiningNetwork.StartConnectMinerAsync);
                 }
                 else
                 {
@@ -218,7 +219,15 @@ namespace Xenophyte_Solo_Miner
                 ClassMinerConfigObject.mining_wallet_address = Console.ReadLine();
 
                 ClassConsole.WriteLine("Write the IP/HOST of your mining proxy: ");
-                ClassMinerConfigObject.mining_proxy_host = Console.ReadLine();
+
+
+                IPAddress ipAddress;
+
+                while (!IPAddress.TryParse(Console.ReadLine(), out ipAddress) || ipAddress == null ||
+                    ipAddress.AddressFamily != AddressFamily.InterNetwork && ipAddress.AddressFamily != AddressFamily.InterNetworkV6)
+                    ClassConsole.WriteLine("Write the IP/HOST of your mining proxy, this one is invalid: ", ClassConsoleColorEnumeration.ConsoleTextColorRed);
+
+                ClassMinerConfigObject.mining_proxy_host = ipAddress;
 
                 ClassConsole.WriteLine("Write the port of your mining proxy: ");
                 while (!int.TryParse(Console.ReadLine(), out ClassMinerConfigObject.mining_proxy_port))

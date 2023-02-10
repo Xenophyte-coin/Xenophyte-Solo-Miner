@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,8 +9,6 @@ using Xenophyte_Connector_All.Setting;
 using Xenophyte_Connector_All.SoloMining;
 using Xenophyte_Connector_All.Utils;
 using Xenophyte_Solo_Miner.ConsoleMiner;
-
-// ReSharper disable FunctionNeverReturns
 
 namespace Xenophyte_Solo_Miner.Mining
 {
@@ -90,10 +89,17 @@ namespace Xenophyte_Solo_Miner.Mining
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
             {
-                while (!await ObjectSeedNodeNetwork.StartConnectToSeedAsync(string.Empty))
+                foreach (IPAddress ipAddress in ClassConnectorSetting.SeedNodeIp.Keys)
                 {
-                    ClassConsole.WriteLine("Can't connect to the network, retry in 5 seconds..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
+                    if (await ObjectSeedNodeNetwork.StartConnectToSeedAsync(ipAddress))
+                    {
+                        ClassConsole.WriteLine("Connect to " + ipAddress.ToString() + " successfully done.", ClassConsoleColorEnumeration.ConsoleTextColorGreen);
+                        break;
+                    }
+
+                    ClassConsole.WriteLine("Can't connect to " + ipAddress.ToString() + " the network, retry in 5 seconds next Seed Node IP..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
                     await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);
+
                 }
             }
             else
@@ -107,9 +113,7 @@ namespace Xenophyte_Solo_Miner.Mining
             }
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
-            {
                 ClassConsole.WriteLine("Miner connected to the network, generate certificate connection..", ClassConsoleColorEnumeration.ConsoleTextColorYellow);
-            }
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
             {
@@ -195,7 +199,7 @@ namespace Xenophyte_Solo_Miner.Mining
                         ClassMining.StopMining();
                         CleanNetworkBlockInformations();
                         DisconnectNetwork();
-                        while (!await StartConnectMinerAsync())
+                        if(!await StartConnectMinerAsync())
                         {
                             ClassConsole.WriteLine("Can't connect to the proxy, retry in 5 seconds..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
                             await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);

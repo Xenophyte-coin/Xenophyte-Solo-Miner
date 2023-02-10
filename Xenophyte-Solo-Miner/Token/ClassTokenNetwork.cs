@@ -30,7 +30,7 @@ namespace Xenophyte_Solo_Miner.Token
             {
                 return true;
             }
-            Dictionary<string, int> listOfSeedNodesSpeed = new Dictionary<string, int>();
+            Dictionary<IPAddress, int> listOfSeedNodesSpeed = new Dictionary<IPAddress, int>();
             foreach (var seedNode in ClassConnectorSetting.SeedNodeIp)
             {
 
@@ -59,9 +59,9 @@ namespace Xenophyte_Solo_Miner.Token
             {
                 try
                 {
-                    string randomSeedNode = seedNode.Key;
+                    IPAddress randomSeedNode = seedNode.Key;
                     string request = ClassConnectorSettingEnumeration.WalletTokenType + ClassConnectorSetting.PacketContentSeperator + ClassRpcWalletCommand.TokenCheckWalletAddressExist + ClassConnectorSetting.PacketContentSeperator + walletAddress;
-                    string result = await ProceedHttpRequest("http://" + randomSeedNode + ":" + ClassConnectorSetting.SeedNodeTokenPort + "/", request);
+                    string result = await ProceedHttpRequest("http://" + randomSeedNode.ToString() + ":" + ClassConnectorSetting.SeedNodeTokenPort + "/", request);
                     if (result != string.Empty && result != PacketNotExist)
                     {
                         JObject resultJson = JObject.Parse(result);
