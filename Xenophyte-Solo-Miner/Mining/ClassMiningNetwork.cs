@@ -228,31 +228,34 @@ namespace Xenophyte_Solo_Miner.Mining
             IsConnected = false;
             _loginAccepted = false;
 
-            try
+            Task.Factory.StartNew(() =>
             {
-                if (CancellationTaskNetwork != null)
+                try
                 {
-                    if (!CancellationTaskNetwork.IsCancellationRequested)
+                    if (CancellationTaskNetwork != null)
                     {
-                        CancellationTaskNetwork.Cancel();
+                        if (!CancellationTaskNetwork.IsCancellationRequested)
+                        {
+                            CancellationTaskNetwork.Cancel();
+                        }
                     }
                 }
-            }
-            catch
-            {
-                // Ignored.
-            }
+                catch
+                {
+                    // Ignored.
+                }
 
-            try
-            {
-                ObjectSeedNodeNetwork?.DisconnectToSeed();
-            }
-            catch
-            {
-                // Ignored.
-            }
+                try
+                {
+                    ObjectSeedNodeNetwork?.DisconnectToSeed();
+                }
+                catch
+                {
+                    // Ignored.
+                }
 
-            ClassMining.StopMining();
+                ClassMining.StopMining();
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
