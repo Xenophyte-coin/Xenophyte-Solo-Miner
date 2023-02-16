@@ -76,8 +76,7 @@ namespace Xenophyte_Solo_Miner.Mining
         /// </summary>
         public static async Task<bool> StartConnectMinerAsync()
         {
-            CertificateConnection = ClassUtils.GenerateCertificate();
-            MalformedPacket = string.Empty;
+           
 
 
             ObjectSeedNodeNetwork?.DisconnectToSeed();
@@ -88,9 +87,13 @@ namespace Xenophyte_Solo_Miner.Mining
             CancellationTaskNetwork = new CancellationTokenSource();
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
+
             {
                 foreach (IPAddress ipAddress in ClassConnectorSetting.SeedNodeIp.Keys)
                 {
+                    CertificateConnection = ClassUtils.GenerateCertificate();
+                    MalformedPacket = string.Empty;
+
                     if (await ObjectSeedNodeNetwork.StartConnectToSeedAsync(ipAddress))
                     {
                         ClassConsole.WriteLine("Connect to " + ipAddress.ToString() + " successfully done.", ClassConsoleColorEnumeration.ConsoleTextColorGreen);
@@ -104,9 +107,13 @@ namespace Xenophyte_Solo_Miner.Mining
             }
             else
             {
+                
                 while (!await ObjectSeedNodeNetwork.StartConnectToSeedAsync(Program.ClassMinerConfigObject.mining_proxy_host,
                     Program.ClassMinerConfigObject.mining_proxy_port))
                 {
+                    CertificateConnection = ClassUtils.GenerateCertificate();
+                    MalformedPacket = string.Empty;
+
                     ClassConsole.WriteLine("Can't connect to the proxy, retry in 5 seconds..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
                     await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);
                 }

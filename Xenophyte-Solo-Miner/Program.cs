@@ -371,7 +371,7 @@ namespace Xenophyte_Solo_Miner
             }
 
             ClassConsole.WriteLine("Start to connect to the network..", ClassConsoleColorEnumeration.ConsoleTextColorYellow);
-            Task.Factory.StartNew(ClassMiningNetwork.StartConnectMinerAsync).ConfigureAwait(false);
+            Task.Factory.StartNew(ClassMiningNetwork.StartConnectMinerAsync);
         }
 
         /// <summary>
