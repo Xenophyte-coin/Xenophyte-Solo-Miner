@@ -10,6 +10,8 @@ using Xenophyte_Connector_All.SoloMining;
 using Xenophyte_Connector_All.Utils;
 using Xenophyte_Solo_Miner.ConsoleMiner;
 
+// ReSharper disable FunctionNeverReturns
+
 namespace Xenophyte_Solo_Miner.Mining
 {
     public class ClassMiningBlockSplitEnumeration
@@ -65,6 +67,7 @@ namespace Xenophyte_Solo_Miner.Mining
         public static string CurrentBlockNetworkHashrate;
         public static string CurrentBlockLifetime;
 
+
         /// <summary>
         ///     For mining method.
         /// </summary>
@@ -76,7 +79,8 @@ namespace Xenophyte_Solo_Miner.Mining
         /// </summary>
         public static async Task<bool> StartConnectMinerAsync()
         {
-           
+            CertificateConnection = ClassUtils.GenerateCertificate();
+            MalformedPacket = string.Empty;
 
 
             ObjectSeedNodeNetwork?.DisconnectToSeed();
@@ -84,43 +88,55 @@ namespace Xenophyte_Solo_Miner.Mining
 
             ObjectSeedNodeNetwork = new ClassSeedNodeConnector();
 
+            if (CancellationTaskNetwork != null)
+            {
+                try
+                {
+                    if (!CancellationTaskNetwork.IsCancellationRequested)
+                        CancellationTaskNetwork.Cancel();
+                }
+                catch
+                {
+                    // Ignored.
+                }
+            }
+
             CancellationTaskNetwork = new CancellationTokenSource();
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
-
             {
-                foreach (IPAddress ipAddress in ClassConnectorSetting.SeedNodeIp.Keys)
+                bool isConnected = false;
+                while (!isConnected)
                 {
-                    CertificateConnection = ClassUtils.GenerateCertificate();
-                    MalformedPacket = string.Empty;
-
-                    if (await ObjectSeedNodeNetwork.StartConnectToSeedAsync(ipAddress))
+                    foreach (IPAddress ip in ClassConnectorSetting.SeedNodeIp.Keys)
                     {
-                        ClassConsole.WriteLine("Connect to " + ipAddress.ToString() + " successfully done.", ClassConsoleColorEnumeration.ConsoleTextColorGreen);
-                        break;
+                        if (await ObjectSeedNodeNetwork.StartConnectToSeedAsync(ip))
+                        {
+                            isConnected = true;
+                            break;
+                        }
+                        else
+                        {
+                            ClassConsole.WriteLine("Can't connect to the network, retry in 5 seconds..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
+                            await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);
+                        }
                     }
-
-                    ClassConsole.WriteLine("Can't connect to " + ipAddress.ToString() + " the network, retry in 5 seconds next Seed Node IP..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
-                    await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);
-
                 }
             }
             else
             {
-                
                 while (!await ObjectSeedNodeNetwork.StartConnectToSeedAsync(Program.ClassMinerConfigObject.mining_proxy_host,
                     Program.ClassMinerConfigObject.mining_proxy_port))
                 {
-                    CertificateConnection = ClassUtils.GenerateCertificate();
-                    MalformedPacket = string.Empty;
-
                     ClassConsole.WriteLine("Can't connect to the proxy, retry in 5 seconds..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
                     await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);
                 }
             }
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
+            {
                 ClassConsole.WriteLine("Miner connected to the network, generate certificate connection..", ClassConsoleColorEnumeration.ConsoleTextColorYellow);
+            }
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
             {
@@ -206,7 +222,7 @@ namespace Xenophyte_Solo_Miner.Mining
                         ClassMining.StopMining();
                         CleanNetworkBlockInformations();
                         DisconnectNetwork();
-                        if(!await StartConnectMinerAsync())
+                        while (!await StartConnectMinerAsync())
                         {
                             ClassConsole.WriteLine("Can't connect to the proxy, retry in 5 seconds..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
                             await Task.Delay(ClassConnectorSetting.MaxTimeoutConnect);
@@ -235,34 +251,9 @@ namespace Xenophyte_Solo_Miner.Mining
             IsConnected = false;
             _loginAccepted = false;
 
-            Task.Factory.StartNew(() =>
-            {
-                try
-                {
-                    if (CancellationTaskNetwork != null)
-                    {
-                        if (!CancellationTaskNetwork.IsCancellationRequested)
-                        {
-                            CancellationTaskNetwork.Cancel();
-                        }
-                    }
-                }
-                catch
-                {
-                    // Ignored.
-                }
+            ClassMining.StopMining();
 
-                try
-                {
-                    ObjectSeedNodeNetwork?.DisconnectToSeed();
-                }
-                catch
-                {
-                    // Ignored.
-                }
-
-                ClassMining.StopMining();
-            }).ConfigureAwait(false);
+            
         }
 
         /// <summary>
@@ -308,7 +299,7 @@ namespace Xenophyte_Solo_Miner.Mining
                                         {
                                             if (packetEach.Length > 1)
                                             {
-                                                var packetRequest = packetEach.Replace(ClassConnectorSetting.PacketSplitSeperator,"");
+                                                var packetRequest = packetEach.Replace(ClassConnectorSetting.PacketSplitSeperator, "");
                                                 if (packetRequest == ClassSeedNodeStatus.SeedError)
                                                 {
                                                     ClassConsole.WriteLine("Network error received. Waiting network checker..", ClassConsoleColorEnumeration.ConsoleTextColorRed);
@@ -611,7 +602,7 @@ namespace Xenophyte_Solo_Miner.Mining
                                         int iThread = i;
                                         try
                                         {
-                                            
+
                                             ClassMining.ThreadMining[i] = new Task(() => ClassMining.InitializeMiningThread(iThread), ClassMining.CancellationTaskMining.Token);
                                             ClassMining.ThreadMining[i].Start();
                                         }
