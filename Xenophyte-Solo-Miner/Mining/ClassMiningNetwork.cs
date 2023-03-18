@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,7 +82,6 @@ namespace Xenophyte_Solo_Miner.Mining
         /// </summary>
         public static async Task<bool> StartConnectMinerAsync()
         {
-            CertificateConnection = ClassUtils.GenerateCertificate();
             MalformedPacket = string.Empty;
 
 
@@ -110,6 +112,17 @@ namespace Xenophyte_Solo_Miner.Mining
                 {
                     foreach (IPAddress ip in ClassConnectorSetting.SeedNodeIp.Keys)
                     {
+                        bool doConnection = false;
+
+                        if (ip.AddressFamily == AddressFamily.InterNetwork ||
+                            ip.AddressFamily == AddressFamily.InterNetworkV6 && SupportIpV6Network())
+                            doConnection = true;
+                        
+                        if (!doConnection)
+                            continue;
+
+                        ClassConsole.WriteLine("Try to connect to "+ip.ToString(), ClassConsoleColorEnumeration.ConsoleTextColorRed);
+
                         if (await ObjectSeedNodeNetwork.StartConnectToSeedAsync(ip))
                         {
                             isConnected = true;
@@ -140,6 +153,8 @@ namespace Xenophyte_Solo_Miner.Mining
 
             if (!Program.ClassMinerConfigObject.mining_enable_proxy)
             {
+                CertificateConnection = ClassUtils.GenerateCertificate();
+
                 if (!await ObjectSeedNodeNetwork.SendPacketToSeedNodeAsync(CertificateConnection, string.Empty))
                 {
                     IsConnected = false;
@@ -187,6 +202,26 @@ namespace Xenophyte_Solo_Miner.Mining
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Check if ipv6 is supported.
+        /// </summary>
+        /// <returns></returns>
+        public static bool SupportIpV6Network()
+        {
+            int countIp = 0;
+            IPAddress[] AllIPs = Dns.GetHostAddresses(Dns.GetHostName());
+            foreach (IPAddress ip in AllIPs)
+            {
+
+                if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    if (!ip.IsIPv6LinkLocal)
+                        countIp++;
+                }
+            }
+            return countIp > 0;
         }
 
         /// <summary>
